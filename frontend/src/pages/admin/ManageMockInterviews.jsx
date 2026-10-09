@@ -16,6 +16,8 @@ const ManageMockInterviews = () => {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [activeFeedbackModal, setActiveFeedbackModal] = useState(null);
 
+  const slotsList = Array.isArray(mockInterviews) ? mockInterviews : [];
+
   const [scheduleForm, setScheduleForm] = useState({
     mentorName: 'Ananya Deshmukh',
     mentorTitle: 'Senior Tech Lead at Amazon',
@@ -96,7 +98,7 @@ const ManageMockInterviews = () => {
               </tr>
             </thead>
             <tbody>
-              {mockInterviews.map(slot => (
+              {slotsList.map(slot => (
                 <tr key={slot.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                   <td style={{ padding: '0.95rem 1.25rem' }}>
                     <div style={{ fontWeight: '700', color: 'var(--text-title)' }}>{slot.mentorName}</div>

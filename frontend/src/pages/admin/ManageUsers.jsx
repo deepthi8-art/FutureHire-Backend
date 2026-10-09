@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { portalService } from '../../services/portalService';
 import {
   Users,
   Search,
@@ -33,10 +34,14 @@ const ManageUsers = () => {
 
   const departments = ['All', 'CSE', 'ECE', 'IT', 'MECH', 'CIVIL'];
 
-  const filteredUsers = adminUsers.filter(u => {
-    const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          u.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDept = departmentFilter === 'All' || u.department === departmentFilter;
+  const usersList = Array.isArray(adminUsers) ? adminUsers : [];
+
+  const filteredUsers = usersList.filter(u => {
+    const userName = (u?.name || u?.fullName || '').toLowerCase();
+    const userEmail = (u?.email || '').toLowerCase();
+    const matchesSearch = userName.includes(searchTerm.toLowerCase()) ||
+                          userEmail.includes(searchTerm.toLowerCase());
+    const matchesDept = departmentFilter === 'All' || (u?.department || 'CSE') === departmentFilter;
     return matchesSearch && matchesDept;
   });
 
@@ -48,7 +53,7 @@ const ManageUsers = () => {
     }
 
     if (editingStudent) {
-      setAdminUsers(prev => prev.map(u => u.id === editingStudent.id ? { ...u, ...studentForm } : u));
+      setAdminUsers(prev => (prev || []).map(u => u.id === editingStudent.id ? { ...u, ...studentForm } : u));
       showToast(`Student record for ${studentForm.name} updated.`, 'success');
       setEditingStudent(null);
     } else {
@@ -56,7 +61,7 @@ const ManageUsers = () => {
         id: `STD-${Math.floor(100 + Math.random() * 900)}`,
         ...studentForm
       };
-      setAdminUsers([newUser, ...adminUsers]);
+      setAdminUsers([newUser, ...usersList]);
       showToast(`Student ${studentForm.name} added successfully!`, 'success');
     }
 
@@ -67,19 +72,24 @@ const ManageUsers = () => {
   const handleEditClick = (student) => {
     setEditingStudent(student);
     setStudentForm({
-      name: student.name,
-      email: student.email,
-      department: student.department,
-      year: student.year,
-      cgpa: student.cgpa,
-      status: student.status
+      name: student.name || student.fullName || '',
+      email: student.email || '',
+      department: student.department || 'CSE',
+      year: student.year || '4th Year',
+      cgpa: student.cgpa || '8.50',
+      status: student.status || 'Active'
     });
     setShowAddModal(true);
   };
 
-  const handleDeleteUser = (id, name) => {
+  const handleDeleteUser = async (student) => {
+    const id = student.id;
+    const name = student.name || student.fullName || 'User';
     if (window.confirm(`Are you sure you want to delete student "${name}"?`)) {
-      setAdminUsers(prev => prev.filter(u => u.id !== id));
+      if (student.rawId) {
+        await portalService.deleteAdminUser(student.rawId);
+      }
+      setAdminUsers(prev => (prev || []).filter(u => u.id !== id));
       showToast(`Student ${name} deleted.`, 'info');
     }
   };
@@ -170,7 +180,7 @@ const ManageUsers = () => {
                       <button onClick={() => handleEditClick(u)} className="btn btn-outline btn-sm" title="Edit Student">
                         <Edit size={15} />
                       </button>
-                      <button onClick={() => handleDeleteUser(u.id, u.name)} className="btn btn-danger btn-sm" title="Delete Student">
+                      <button onClick={() => handleDeleteUser(u)} className="btn btn-danger btn-sm" title="Delete Student">
                         <Trash2 size={15} />
                       </button>
                     </div>

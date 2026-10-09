@@ -10,7 +10,7 @@ const About = () => {
 
       <section style={{ padding: '4rem 2rem', backgroundColor: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto', textAlign: 'center' }}>
-          <span style={{ fontSize: '0.85rem', fontWeight: '800', color: 'var(--purple-600)', textTransform: 'uppercase' }}>About FutureHire</span>
+          <span style={{ fontSize: '0.85rem', fontWeight: '800', color: 'var(--teal-700)', textTransform: 'uppercase' }}>About FutureHire</span>
           <h1 style={{ fontSize: '2.75rem', marginTop: '0.5rem', marginBottom: '1.25rem' }}>
             Empowering Next-Gen Engineers to <span className="gradient-text">Conquer Campus Placements</span>
           </h1>
@@ -45,7 +45,7 @@ const About = () => {
               <h3 style={{ fontSize: '1.35rem', marginBottom: '1.2rem' }}>Platform Stats at a Glance</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '50%', backgroundColor: 'var(--primary-50)', color: 'var(--primary-600)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '50%', backgroundColor: 'var(--teal-50)', color: 'var(--teal-700)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Users size={20} />
                   </div>
                   <div>
@@ -55,7 +55,7 @@ const About = () => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '50%', backgroundColor: 'var(--purple-50)', color: 'var(--purple-600)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '50%', backgroundColor: 'var(--teal-50)', color: 'var(--teal-800)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Trophy size={20} />
                   </div>
                   <div>

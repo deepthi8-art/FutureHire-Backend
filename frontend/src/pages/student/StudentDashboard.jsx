@@ -32,7 +32,7 @@ const StudentDashboard = () => {
       <div
         className="card"
         style={{
-          background: 'linear-gradient(135deg, var(--primary-600) 0%, var(--purple-700) 100%)',
+          background: 'linear-gradient(135deg, var(--teal-800) 0%, var(--teal-600) 100%)',
           color: '#FFF',
           padding: '2rem',
           position: 'relative',
@@ -120,8 +120,8 @@ const StudentDashboard = () => {
               <AreaChart data={progressChartData}>
                 <defs>
                   <linearGradient id="colorCoding" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#20A69A" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#20A69A" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="month" stroke="#94A3B8" fontSize={12} />
@@ -129,7 +129,7 @@ const StudentDashboard = () => {
                 <Tooltip
                   contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px' }}
                 />
-                <Area type="monotone" dataKey="codingSolved" stroke="#4F46E5" strokeWidth={3} fillOpacity={1} fill="url(#colorCoding)" name="Solved Problems" />
+                <Area type="monotone" dataKey="codingSolved" stroke="#20A69A" strokeWidth={3} fillOpacity={1} fill="url(#colorCoding)" name="Solved Problems" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -194,7 +194,7 @@ const StudentDashboard = () => {
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Solve DSA problems</div>
           </Link>
           <Link to="/student/aptitude-practice" className="card card-hover" style={{ textDecoration: 'none', padding: '1rem' }}>
-            <Brain size={22} style={{ color: 'var(--purple-600)', marginBottom: '0.5rem' }} />
+            <Brain size={22} style={{ color: 'var(--teal-600)', marginBottom: '0.5rem' }} />
             <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>Aptitude Tests</div>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Timed quizzes</div>
           </Link>

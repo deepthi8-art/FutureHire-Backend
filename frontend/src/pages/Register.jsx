@@ -71,7 +71,7 @@ const Register = () => {
           alignItems: 'center',
           justifyContent: 'center',
           padding: '3rem 1rem',
-          background: 'radial-gradient(circle at 50% 30%, rgba(79, 70, 229, 0.08) 0%, transparent 70%)'
+          background: 'radial-gradient(circle at 50% 30%, rgba(32, 166, 154, 0.08) 0%, transparent 70%)'
         }}
       >
         <div
@@ -90,7 +90,7 @@ const Register = () => {
                 width: '48px',
                 height: '48px',
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, var(--primary-600) 0%, var(--purple-600) 100%)',
+                background: 'linear-gradient(135deg, var(--teal-800) 0%, var(--teal-500) 100%)',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -269,7 +269,7 @@ const Register = () => {
 
           <div style={{ marginTop: '1.75rem', textAlign: 'center', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
             Already registered?{' '}
-            <Link to="/login" style={{ color: 'var(--primary-600)', fontWeight: '700' }}>
+            <Link to="/login" style={{ color: 'var(--teal-700)', fontWeight: '700' }}>
               Sign In Here
             </Link>
           </div>

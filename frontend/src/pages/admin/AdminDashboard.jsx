@@ -25,7 +25,7 @@ import {
 } from 'recharts';
 import { departmentDistributionData, progressChartData } from '../../data/mockData';
 
-const COLORS = ['#4F46E5', '#7C3AED', '#06B6D4', '#10B981', '#F59E0B'];
+const COLORS = ['#123B3A', '#20A69A', '#0D9488', '#10B981', '#F59E0B'];
 
 const AdminDashboard = () => {
   const { adminUsers, codingProblems, companies, mockInterviews } = useAuth();
@@ -37,7 +37,7 @@ const AdminDashboard = () => {
       <div
         className="card"
         style={{
-          background: 'linear-gradient(135deg, var(--purple-700) 0%, #4338CA 100%)',
+          background: 'linear-gradient(135deg, var(--teal-800) 0%, var(--teal-600) 100%)',
           color: '#FFF',
           padding: '2rem'
         }}
@@ -57,34 +57,34 @@ const AdminDashboard = () => {
       <div className="grid-4">
         <StatCard
           title="Registered Students"
-          value={adminUsers.length.toString()}
+          value={(adminUsers?.length || 0).toString()}
           icon={Users}
           trend="up"
           trendValue="+18 this week"
-          color="purple"
+          color="teal"
           description="Across 5 Departments"
         />
         <StatCard
           title="Question Bank"
-          value={codingProblems.length.toString()}
+          value={(codingProblems?.length || 0).toString()}
           icon={HelpCircle}
           trend="up"
           trendValue="Active"
-          color="primary"
+          color="cyan"
           description="DSA & Aptitude"
         />
         <StatCard
           title="Partner Companies"
-          value={companies.length.toString()}
+          value={(companies?.length || 0).toString()}
           icon={Building}
           trend="up"
           trendValue="Tier-1 Drives"
-          color="cyan"
+          color="teal"
           description="Active Campus Recruiter"
         />
         <StatCard
           title="Mock Interviews"
-          value={mockInterviews.length.toString()}
+          value={(mockInterviews?.length || 0).toString()}
           icon={Video}
           trend="up"
           trendValue="92% Completed"
@@ -105,7 +105,7 @@ const AdminDashboard = () => {
                 <XAxis type="number" stroke="#94A3B8" fontSize={12} />
                 <YAxis dataKey="name" type="category" stroke="#94A3B8" fontSize={11} width={130} />
                 <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px' }} />
-                <Bar dataKey="students" fill="#7C3AED" radius={[0, 6, 6, 0]} name="Students Count" />
+                <Bar dataKey="students" fill="#20A69A" radius={[0, 6, 6, 0]} name="Students Count" />
               </BarChart>
             </ResponsiveContainer>
           </div>

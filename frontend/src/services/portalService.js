@@ -158,9 +158,32 @@ export const portalService = {
   getAdminUsers: async () => {
     try {
       const response = await api.get('/admin/users');
-      return response.data?.data;
+      const raw = response.data?.data;
+      if (Array.isArray(raw)) {
+        return raw.map(u => ({
+          id: u.id ? (typeof u.id === 'number' ? `STD-${u.id}` : u.id) : `STD-${Math.floor(100 + Math.random() * 900)}`,
+          rawId: u.id,
+          name: u.fullName || u.name || 'Student User',
+          email: u.email || '',
+          department: u.department || 'CSE',
+          year: u.year || u.yearOfStudy || '4th Year',
+          cgpa: u.cgpa || '8.50',
+          status: u.status || (u.enabled !== false ? 'Active' : 'Inactive'),
+          role: typeof u.role === 'object' ? u.role.name : (u.role || 'ROLE_STUDENT')
+        }));
+      }
+      return raw;
     } catch (e) {
       return null;
+    }
+  },
+
+  deleteAdminUser: async (rawId) => {
+    try {
+      const response = await api.delete(`/admin/users/${rawId}`);
+      return response.data?.success;
+    } catch (e) {
+      return false;
     }
   },
 

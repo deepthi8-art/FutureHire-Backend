@@ -85,7 +85,7 @@ const Login = () => {
           alignItems: 'center',
           justifyContent: 'center',
           padding: '3rem 1rem',
-          background: 'radial-gradient(circle at 50% 30%, rgba(124, 58, 237, 0.08) 0%, transparent 70%)'
+          background: 'radial-gradient(circle at 50% 30%, rgba(32, 166, 154, 0.07) 0%, transparent 70%)'
         }}
       >
         <div
@@ -104,7 +104,7 @@ const Login = () => {
                 width: '48px',
                 height: '48px',
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, var(--primary-600) 0%, var(--purple-600) 100%)',
+                background: 'linear-gradient(135deg, var(--teal-800) 0%, var(--teal-500) 100%)',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -146,7 +146,7 @@ const Login = () => {
                 justifyContent: 'center',
                 gap: '0.4rem',
                 backgroundColor: role === 'student' ? 'var(--bg-card)' : 'transparent',
-                color: role === 'student' ? 'var(--primary-600)' : 'var(--text-muted)',
+                color: role === 'student' ? 'var(--teal-600)' : 'var(--text-muted)',
                 boxShadow: role === 'student' ? 'var(--shadow-sm)' : 'none',
                 transition: 'var(--transition)'
               }}
@@ -169,7 +169,7 @@ const Login = () => {
                 justifyContent: 'center',
                 gap: '0.4rem',
                 backgroundColor: role === 'admin' ? 'var(--bg-card)' : 'transparent',
-                color: role === 'admin' ? 'var(--purple-600)' : 'var(--text-muted)',
+                color: role === 'admin' ? 'var(--teal-800)' : 'var(--text-muted)',
                 boxShadow: role === 'admin' ? 'var(--shadow-sm)' : 'none',
                 transition: 'var(--transition)'
               }}
@@ -185,9 +185,9 @@ const Login = () => {
               gap: '0.5rem',
               marginBottom: '1.5rem',
               padding: '0.65rem',
-              backgroundColor: 'rgba(79, 70, 229, 0.05)',
+              backgroundColor: 'rgba(32, 166, 154, 0.05)',
               borderRadius: 'var(--radius-md)',
-              border: '1px dashed var(--primary-200)',
+              border: '1px dashed var(--teal-200)',
               alignItems: 'center',
               justifyContent: 'space-between'
             }}
@@ -205,7 +205,7 @@ const Login = () => {
               type="button"
               onClick={fillDemoAdmin}
               className="btn btn-outline btn-sm"
-              style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem', color: 'var(--purple-600)', borderColor: 'var(--purple-600)' }}
+              style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem', color: 'var(--teal-800)', borderColor: 'var(--teal-800)' }}
             >
               Admin Demo
             </button>
@@ -266,7 +266,7 @@ const Login = () => {
                 id="remember"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                style={{ accentColor: 'var(--primary-600)', width: '16px', height: '16px' }}
+                style={{ accentColor: 'var(--teal-500)', width: '16px', height: '16px' }}
               />
               <label htmlFor="remember" style={{ fontSize: '0.85rem', color: 'var(--text-body)', cursor: 'pointer' }}>
                 Remember me on this device

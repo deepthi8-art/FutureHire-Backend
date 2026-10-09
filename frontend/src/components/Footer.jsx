@@ -24,7 +24,7 @@ const Footer = () => {
                   width: '38px',
                   height: '38px',
                   borderRadius: '10px',
-                  background: 'linear-gradient(135deg, var(--primary-600) 0%, var(--purple-600) 100%)',
+                  background: 'linear-gradient(135deg, var(--teal-800) 0%, var(--teal-500) 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -88,13 +88,13 @@ const Footer = () => {
             </h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
               <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Mail size={16} style={{ color: 'var(--primary-600)' }} /> support@futurehire.edu
+                <Mail size={16} style={{ color: 'var(--teal-500)' }} /> support@futurehire.edu
               </li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Phone size={16} style={{ color: 'var(--primary-600)' }} /> +91 1800-FUTURE-HIRE
+                <Phone size={16} style={{ color: 'var(--teal-500)' }} /> +91 1800-FUTURE-HIRE
               </li>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                <MapPin size={16} style={{ color: 'var(--primary-600)', marginTop: '3px' }} /> Tech Park Hub, University Campus, Bangalore - 560100
+                <MapPin size={16} style={{ color: 'var(--teal-500)', marginTop: '3px' }} /> Tech Park Hub, University Campus, Bangalore - 560100
               </li>
             </ul>
           </div>

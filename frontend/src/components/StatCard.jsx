@@ -5,15 +5,16 @@ const StatCard = ({ title, value, icon: Icon, trend, trendValue, color = 'primar
   const getColorStyles = () => {
     switch (color) {
       case 'purple':
-        return { bg: 'rgba(124, 58, 237, 0.12)', text: 'var(--purple-600)' };
+      case 'teal':
+        return { bg: 'rgba(32, 166, 154, 0.12)', text: 'var(--teal-700)' };
       case 'cyan':
-        return { bg: 'rgba(6, 182, 212, 0.12)', text: 'var(--cyan-600)' };
+        return { bg: 'rgba(18, 59, 58, 0.10)', text: 'var(--teal-800)' };
       case 'emerald':
         return { bg: 'rgba(16, 185, 129, 0.12)', text: 'var(--emerald-500)' };
       case 'amber':
         return { bg: 'rgba(245, 158, 11, 0.12)', text: 'var(--amber-500)' };
       default:
-        return { bg: 'rgba(79, 70, 229, 0.12)', text: 'var(--primary-600)' };
+        return { bg: 'rgba(32, 166, 154, 0.12)', text: 'var(--teal-700)' };
     }
   };
 
