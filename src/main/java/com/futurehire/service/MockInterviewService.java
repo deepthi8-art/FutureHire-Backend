@@ -49,7 +49,6 @@ public class MockInterviewService {
         }
 
         slot.setStatus(SlotStatus.BOOKED);
-        slot.setMeetingLink("https://meet.google.com/futurehire-" + Long.toHexString(System.currentTimeMillis()));
         slotRepository.save(slot);
 
         MockInterviewBooking booking = new MockInterviewBooking(slot, student);

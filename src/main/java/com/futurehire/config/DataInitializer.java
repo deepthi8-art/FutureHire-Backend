@@ -7,10 +7,10 @@ import com.futurehire.enums.SlotStatus;
 import com.futurehire.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.StringUtils;
 import org.springframework.stereotype.Component;
-
-import java.util.Arrays;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -45,6 +45,18 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Value("${futurehire.bootstrap-admin.email:}")
+    private String bootstrapAdminEmail;
+
+    @Value("${futurehire.bootstrap-admin.password:}")
+    private String bootstrapAdminPassword;
+
+    @Value("${futurehire.bootstrap-admin.name:FutureHire Administrator}")
+    private String bootstrapAdminName;
+
+    @Value("${futurehire.seed-demo-users:false}")
+    private boolean seedDemoUsers;
+
     @Override
     public void run(String... args) throws Exception {
         // 1. Initialize Roles
@@ -53,14 +65,19 @@ public class DataInitializer implements CommandLineRunner {
         Role adminRole = roleRepository.findByName(RoleType.ROLE_ADMIN)
                 .orElseGet(() -> roleRepository.save(new Role(RoleType.ROLE_ADMIN)));
 
-        // 2. Seed Admin User
-        if (!userRepository.existsByEmail("admin@futurehire.org")) {
-            User admin = new User("Dr. Rajesh Sharma", "admin@futurehire.org", passwordEncoder.encode("admin123"), adminRole);
+        if (StringUtils.hasText(bootstrapAdminEmail) != StringUtils.hasText(bootstrapAdminPassword)) {
+            throw new IllegalStateException("Set both BOOTSTRAP_ADMIN_EMAIL and BOOTSTRAP_ADMIN_PASSWORD to provision an administrator.");
+        }
+
+        if (StringUtils.hasText(bootstrapAdminEmail)
+                && !userRepository.existsByEmail(bootstrapAdminEmail)) {
+            User admin = new User(bootstrapAdminName, bootstrapAdminEmail,
+                    passwordEncoder.encode(bootstrapAdminPassword), adminRole);
             userRepository.save(admin);
         }
 
-        // 3. Seed Demo Student
-        if (!userRepository.existsByEmail("alex.morgan@university.edu")) {
+        // Demo accounts are opt-in and should only be enabled in local environments.
+        if (seedDemoUsers && !userRepository.existsByEmail("alex.morgan@university.edu")) {
             User student = new User("Alex Morgan", "alex.morgan@university.edu", passwordEncoder.encode("student123"), studentRole);
             User savedStudent = userRepository.save(student);
 

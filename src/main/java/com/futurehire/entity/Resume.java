@@ -1,5 +1,6 @@
 package com.futurehire.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -18,10 +19,11 @@ public class Resume {
     private String fileName;
     private String fileType = "application/pdf";
     private String fileSize = "1.4 MB";
-    private int atsScore = 88;
-    private String status = "Scanned & Verified";
+    private int atsScore;
+    private String status = "Uploaded";
 
     @Lob
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(columnDefinition = "LONGBLOB")
     private byte[] fileData;
 
