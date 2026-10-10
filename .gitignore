@@ -1,34 +1,33 @@
-# ===== Backend =====
-backend/target/
-backend/.mvn/wrapper/maven-wrapper.jar
-*.class
-*.jar
-*.war
-*.ear
-*.log
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!target/classes/META-INF/MANIFEST.MF
 
-# ===== Frontend =====
-frontend/node_modules/
-frontend/dist/
-frontend/.env
-frontend/.env.local
-frontend/.env.production
-
-# ===== IDE =====
-.idea/
+### IntelliJ IDEA ###
+.idea
+*.iws
 *.iml
-.vscode/
-*.suo
-*.user
+*.ipr
 
-# ===== OS =====
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### NetBeans ###
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### OS files ###
 .DS_Store
 Thumbs.db
-desktop.ini
-
-# ===== Secrets =====
-*.properties.production
-application-prod.properties
-
-# ===== Antigravity =====
-.antigravityignore
