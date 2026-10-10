@@ -25,18 +25,34 @@ import {
 import { progressChartData } from '../../data/mockData';
 
 const ProgressTracker = () => {
-  const { codingProblems, aptitudeQuizzes, mockInterviews } = useAuth();
+  const { codingProblems, aptitudeQuizzes, mockInterviews, quizResults, resumeData } = useAuth();
 
-  const solvedCount = codingProblems.filter(p => p.solved).length;
-  const pendingCount = codingProblems.length - solvedCount;
+  const totalCoding = (codingProblems || []).length || 1;
+  const solvedCount = (codingProblems || []).filter(p => p.solved).length;
+  const pendingCount = totalCoding - solvedCount;
+
+  const avgAptitude = quizResults && quizResults.length > 0
+    ? Math.round(quizResults.reduce((acc, q) => acc + (q.percentage || 0), 0) / quizResults.length)
+    : 85;
+
+  const completedMocksCount = (mockInterviews || []).filter(m => (m.status || '').toLowerCase() === 'completed').length;
+  const bookedMocksCount = (mockInterviews || []).filter(m => (m.status || '').toLowerCase() === 'booked').length;
+
+  const codingWeight = (solvedCount / totalCoding) * 35;
+  const aptitudeWeight = (avgAptitude / 100) * 30;
+  const resumeWeight = resumeData ? 20 : 5;
+  const mockWeight = Math.min(15, (completedMocksCount + bookedMocksCount) * 5 + 5);
+  const readinessScore = Math.min(100, Math.max(20, Math.round(codingWeight + aptitudeWeight + resumeWeight + mockWeight)));
+
+  const tierQualification = readinessScore >= 80 ? 'Tier-1 Qualified' : (readinessScore >= 60 ? 'Tier-2 Qualified' : 'OA Preparation Active');
 
   const checklistItems = [
     { id: 1, text: 'Complete Profile & Target Companies', done: true },
-    { id: 2, text: 'Solve 100+ Coding Problems', done: solvedCount >= 100 },
-    { id: 3, text: 'Score 80%+ on Quantitative Aptitude Quizzes', done: true },
-    { id: 4, text: 'Upload & Scan Resume for ATS Score', done: true },
-    { id: 5, text: 'Complete at least 3 Mock Interviews', done: mockInterviews.filter(m => m.status === 'Completed').length >= 3 },
-    { id: 6, text: 'Crack Amazon / Microsoft Placement OA', done: false }
+    { id: 2, text: 'Solve First Algorithm Problem', done: solvedCount > 0 },
+    { id: 3, text: 'Score 75%+ on Aptitude Quizzes', done: (quizResults || []).some(q => (q.percentage || 0) >= 75) || avgAptitude >= 75 },
+    { id: 4, text: 'Upload & Scan Resume for ATS Score', done: !!resumeData },
+    { id: 5, text: 'Book or Complete Virtual Mock Interview', done: (completedMocksCount + bookedMocksCount) > 0 },
+    { id: 6, text: 'Attain Placement Readiness Score > 75%', done: readinessScore >= 75 }
   ];
 
   return (
@@ -54,28 +70,28 @@ const ProgressTracker = () => {
       <div className="grid-4">
         <div className="card">
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '700' }}>OVERALL READINESS</div>
-          <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--primary-600)', margin: '0.2rem 0' }}>85%</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--emerald-500)', fontWeight: '600' }}>Tier-1 Qualified</div>
+          <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--primary-600)', margin: '0.2rem 0' }}>{readinessScore}%</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--emerald-500)', fontWeight: '600' }}>{tierQualification}</div>
         </div>
 
         <div className="card">
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '700' }}>CODING STATUS</div>
           <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--purple-600)', margin: '0.2rem 0' }}>
-            {solvedCount} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ {codingProblems.length}</span>
+            {solvedCount} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ {totalCoding}</span>
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{pendingCount} Pending</div>
         </div>
 
         <div className="card">
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '700' }}>AVG APTITUDE SCORE</div>
-          <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--cyan-600)', margin: '0.2rem 0' }}>88%</div>
+          <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--cyan-600)', margin: '0.2rem 0' }}>{avgAptitude}%</div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Across Quant, Logical & Verbal</div>
         </div>
 
         <div className="card">
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '700' }}>MOCK RATING</div>
-          <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--amber-500)', margin: '0.2rem 0' }}>4.8 ★</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Based on mentor evaluations</div>
+          <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--amber-500)', margin: '0.2rem 0' }}>{completedMocksCount > 0 ? '4.8 ★' : (bookedMocksCount > 0 ? 'Upcoming' : 'Ready')}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{completedMocksCount} Completed • {bookedMocksCount} Booked</div>
         </div>
       </div>
 

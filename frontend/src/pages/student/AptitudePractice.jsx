@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 const AptitudePractice = () => {
-  const { aptitudeQuizzes, showToast } = useAuth();
+  const { aptitudeQuizzes, showToast, setQuizResults } = useAuth();
 
   const [activeQuiz, setActiveQuiz] = useState(null);
   const [currentQIndex, setCurrentQIndex] = useState(0);
@@ -46,7 +46,7 @@ const AptitudePractice = () => {
     setSelectedAnswers({});
     setIsSubmitted(false);
     setScoreResult(null);
-    setTimeLeft(quiz.durationMinutes * 60);
+    setTimeLeft((quiz.durationMinutes || 15) * 60);
     showToast(`Started "${quiz.title}". Good luck!`, 'info');
   };
 
@@ -56,22 +56,38 @@ const AptitudePractice = () => {
   };
 
   const handleSubmitQuiz = () => {
-    if (!activeQuiz) return;
+    if (!activeQuiz || !activeQuiz.questions) return;
     setIsSubmitted(true);
 
     let correctCount = 0;
     activeQuiz.questions.forEach((q) => {
-      if (selectedAnswers[q.id] === q.correctIndex) {
+      const correctIdx = q.correctIndex !== undefined ? q.correctIndex : q.correctOptionIndex;
+      if (selectedAnswers[q.id] === correctIdx) {
         correctCount += 1;
       }
     });
 
-    const percentage = Math.round((correctCount / activeQuiz.questions.length) * 100);
+    const total = activeQuiz.questions.length || 1;
+    const percentage = Math.round((correctCount / total) * 100);
     setScoreResult({
       correct: correctCount,
-      total: activeQuiz.questions.length,
+      total,
       percentage
     });
+
+    // Update global student progress state
+    const resultObj = {
+      quizId: activeQuiz.rawId || activeQuiz.id,
+      quizTitle: activeQuiz.title,
+      category: activeQuiz.category,
+      correct: correctCount,
+      total,
+      percentage,
+      completedAt: new Date().toISOString()
+    };
+    if (setQuizResults) {
+      setQuizResults(prev => [resultObj, ...(prev || []).filter(r => (r.quizId || r.id) !== (resultObj.quizId))]);
+    }
 
     if (percentage >= 70) {
       try {
@@ -79,7 +95,7 @@ const AptitudePractice = () => {
       } catch (e) {}
     }
 
-    showToast(`Quiz Submitted! You scored ${correctCount}/${activeQuiz.questions.length} (${percentage}%)`, 'success');
+    showToast(`Quiz Submitted! You scored ${correctCount}/${total} (${percentage}%)`, 'success');
   };
 
   const formatTime = (seconds) => {
@@ -111,10 +127,10 @@ const AptitudePractice = () => {
                 <h3 style={{ fontSize: '1.15rem', marginBottom: '0.5rem' }}>{quiz.title}</h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.825rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                    <HelpCircle size={15} /> {quiz.questions.length} Questions
+                    <HelpCircle size={15} /> {quiz.questions?.length || 20} Questions
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                    <Clock size={15} /> {quiz.durationMinutes} Mins
+                    <Clock size={15} /> {quiz.durationMinutes || 20} Mins
                   </span>
                 </div>
               </div>
@@ -185,7 +201,7 @@ const AptitudePractice = () => {
           )}
 
           {/* Question Navigation & Question Box */}
-          {activeQuiz.questions.length > 0 && (
+          {activeQuiz.questions && activeQuiz.questions.length > 0 && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                 <span>Question {currentQIndex + 1} of {activeQuiz.questions.length}</span>
@@ -194,15 +210,16 @@ const AptitudePractice = () => {
 
               {/* Question Text */}
               <h3 style={{ fontSize: '1.15rem', marginBottom: '1.25rem', lineHeight: 1.5 }}>
-                {activeQuiz.questions[currentQIndex].question}
+                {activeQuiz.questions[currentQIndex]?.question || activeQuiz.questions[currentQIndex]?.questionText}
               </h3>
 
               {/* Options */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.75rem' }}>
-                {activeQuiz.questions[currentQIndex].options.map((opt, optIdx) => {
+                {(activeQuiz.questions[currentQIndex]?.options || []).map((opt, optIdx) => {
                   const q = activeQuiz.questions[currentQIndex];
                   const isSelected = selectedAnswers[q.id] === optIdx;
-                  const isCorrect = q.correctIndex === optIdx;
+                  const correctIdx = q.correctIndex !== undefined ? q.correctIndex : q.correctOptionIndex;
+                  const isCorrect = correctIdx === optIdx;
 
                   let optBg = 'var(--bg-input)';
                   let border = '1px solid var(--border-color)';

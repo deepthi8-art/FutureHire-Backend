@@ -359,7 +359,9 @@ h1, h2, h3, h4, h5, h6 {
 .badge-purple  { background-color: rgba(124,58,237,0.12); color: #7C3AED; }
 
 /* Aliases kept for backward compatibility */
---purple-600: #7C3AED;
+:root {
+  --purple-600: #7C3AED;
+}
 
 /* ============================================================
    TABLES

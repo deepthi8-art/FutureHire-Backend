@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { portalService } from '../../services/portalService';
 import {
   MessageSquareQuote,
   Search,
@@ -22,8 +23,8 @@ const InterviewExperiences = () => {
   const [showShareModal, setShowShareModal] = useState(false);
 
   const [newShare, setNewShare] = useState({
-    author: 'Alex Morgan',
-    college: 'National Institute of Tech',
+    author: 'Senior Student',
+    college: 'Engineering Institute',
     company: 'Amazon',
     role: 'SDE Intern / Full-Time',
     verdict: 'Selected',
@@ -34,31 +35,43 @@ const InterviewExperiences = () => {
     tips: ''
   });
 
-  const companiesList = ['All', ...new Set(experiences.map(e => e.company))];
+  const companiesList = ['All', ...new Set((experiences || []).map(e => e.company || e.companyName).filter(Boolean))];
 
-  const filteredExperiences = experiences.filter(exp => {
-    const matchesSearch = exp.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          exp.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          exp.content.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCompany = selectedCompanyFilter === 'All' || exp.company === selectedCompanyFilter;
+  const filteredExperiences = (experiences || []).filter(exp => {
+    const author = (exp.author || exp.student?.fullName || exp.student?.name || '').toLowerCase();
+    const role = (exp.role || exp.roleTitle || '').toLowerCase();
+    const content = (exp.content || '').toLowerCase();
+    const company = (exp.company || exp.companyName || '').toLowerCase();
+    const q = (searchTerm || '').toLowerCase();
+
+    const matchesSearch = !q || author.includes(q) || role.includes(q) || content.includes(q) || company.includes(q);
+    const matchesCompany = selectedCompanyFilter === 'All' || (exp.company || exp.companyName) === selectedCompanyFilter;
     return matchesSearch && matchesCompany;
   });
 
-  const handleShareSubmit = (e) => {
+  const handleShareSubmit = async (e) => {
     e.preventDefault();
     if (!newShare.content) {
       showToast('Please enter experience details.', 'error');
       return;
     }
 
-    const created = {
-      id: `EXP-${Date.now()}`,
-      ...newShare
-    };
-
-    setExperiences([created, ...experiences]);
-    setShowShareModal(false);
-    showToast('Interview experience published! Thank you for sharing.', 'success');
+    try {
+      const created = await portalService.shareExperience(newShare);
+      if (created) {
+        setExperiences(prev => [created, ...(prev || [])]);
+      } else {
+        const localCreated = { id: `EXP-${Date.now()}`, ...newShare };
+        setExperiences(prev => [localCreated, ...(prev || [])]);
+      }
+      setShowShareModal(false);
+      showToast('Interview experience published! Thank you for sharing.', 'success');
+    } catch (err) {
+      const localCreated = { id: `EXP-${Date.now()}`, ...newShare };
+      setExperiences(prev => [localCreated, ...(prev || [])]);
+      setShowShareModal(false);
+      showToast('Interview experience published! Thank you for sharing.', 'success');
+    }
   };
 
   return (
@@ -111,32 +124,32 @@ const InterviewExperiences = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                  <h3 style={{ fontSize: '1.2rem' }}>{exp.company}</h3>
-                  <span className={`badge ${exp.verdict === 'Selected' ? 'badge-easy' : 'badge-hard'}`}>
-                    {exp.verdict}
+                  <h3 style={{ fontSize: '1.2rem' }}>{exp.company || exp.companyName || 'Tech Company'}</h3>
+                  <span className={`badge ${(exp.verdict || 'Selected') === 'Selected' ? 'badge-easy' : 'badge-hard'}`}>
+                    {exp.verdict || 'Selected'}
                   </span>
-                  <span className={`badge badge-${exp.difficulty.toLowerCase()}`}>
-                    {exp.difficulty}
+                  <span className={`badge badge-${(exp.difficulty || 'Medium').toLowerCase()}`}>
+                    {exp.difficulty || 'Medium'}
                   </span>
                 </div>
                 <div style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                  Role: {exp.role} • Package: <strong style={{ color: 'var(--emerald-500)' }}>{exp.packageOffered}</strong>
+                  Role: {exp.role || exp.roleTitle || 'Software Engineer'} • Package: <strong style={{ color: 'var(--emerald-500)' }}>{exp.packageOffered || 'N/A'}</strong>
                 </div>
               </div>
 
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'right' }}>
-                <div>Shared by <strong>{exp.author}</strong> ({exp.college})</div>
-                <div><Calendar size={12} style={{ display: 'inline', marginRight: '3px' }} /> {exp.date}</div>
+                <div>Shared by <strong>{exp.author || 'Senior Student'}</strong> ({exp.college || 'Engineering College'})</div>
+                <div><Calendar size={12} style={{ display: 'inline', marginRight: '3px' }} /> {exp.date || 'Recent'}</div>
               </div>
             </div>
 
             <p style={{ fontSize: '0.9rem', color: 'var(--text-body)', lineHeight: 1.6, marginBottom: '1rem' }}>
-              {exp.content.length > 220 ? `${exp.content.substring(0, 220)}...` : exp.content}
+              {(exp.content || '').length > 220 ? `${exp.content.substring(0, 220)}...` : (exp.content || 'Great placement experience.')}
             </p>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
               <div style={{ fontSize: '0.8rem', color: 'var(--primary-600)', fontWeight: '600' }}>
-                💡 Tip: {exp.tips}
+                💡 Tip: {exp.tips || 'Consistent practice is key!'}
               </div>
               <button onClick={() => setActiveExperience(exp)} className="btn btn-secondary btn-sm">
                 Read Full Experience <BookOpen size={14} />

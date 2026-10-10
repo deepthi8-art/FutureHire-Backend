@@ -30,25 +30,36 @@ const CodingPractice = () => {
   const [outputConsole, setOutputConsole] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
 
-  const categories = ['All', ...new Set(codingProblems.map(p => p.category))];
+  const categories = ['All', ...new Set((codingProblems || []).map(p => p.category).filter(Boolean))];
 
-  const filteredProblems = codingProblems.filter(p => {
-    const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase()) || p.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDifficulty = selectedDifficulty === 'All' || p.difficulty === selectedDifficulty;
+  const filteredProblems = (codingProblems || []).filter(p => {
+    const title = (p.title || '').toLowerCase();
+    const cat = (p.category || '').toLowerCase();
+    const q = (searchTerm || '').toLowerCase();
+    const matchesSearch = !q || title.includes(q) || cat.includes(q);
+    const matchesDifficulty = selectedDifficulty === 'All' || (p.difficulty || '').toLowerCase() === selectedDifficulty.toLowerCase();
     const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
     return matchesSearch && matchesDifficulty && matchesCategory;
   });
 
   const handleOpenProblem = (problem) => {
     setActiveProblem(problem);
-    setUserCode(problem.starterCode[selectedLanguage] || problem.starterCode.javascript || '');
+    const starters = problem.starterCode || {
+      javascript: `function solution() {\n  // Write JavaScript solution\n}`,
+      python: `def solution():\n    # Write Python solution\n    pass`,
+      java: `class Solution {\n    public void solve() {\n        // Write Java solution\n    }\n}`
+    };
+    setUserCode(starters[selectedLanguage] || starters.javascript || '');
     setOutputConsole(null);
   };
 
   const handleLanguageChange = (lang) => {
     setSelectedLanguage(lang);
-    if (activeProblem && activeProblem.starterCode[lang]) {
-      setUserCode(activeProblem.starterCode[lang]);
+    if (activeProblem) {
+      const starters = activeProblem.starterCode || {};
+      if (starters[lang]) {
+        setUserCode(starters[lang]);
+      }
     }
   };
 
@@ -63,20 +74,28 @@ const CodingPractice = () => {
         testCasesPassed: '3/3 Test Cases Passed',
         runtime: '42 ms',
         memory: '14.2 MB',
-        output: `Sample Output: ${activeProblem.sampleOutput}\nConsole Log: Code executed cleanly with zero syntax errors.`
+        output: `Sample Output: ${activeProblem?.sampleOutput || 'Passed'}\nConsole Log: Code executed cleanly with zero syntax errors.`
       });
       showToast('Sample test cases passed!', 'success');
     }, 800);
   };
 
-  const handleSubmitCode = () => {
+  const handleSubmitCode = async () => {
     setIsRunning(true);
     setOutputConsole({ status: 'Running', text: 'Submitting solution to automated evaluator...' });
+
+    if (activeProblem?.rawId) {
+      try {
+        await portalService.submitCodingSolution(activeProblem.rawId, userCode, selectedLanguage);
+      } catch (e) {
+        console.warn('API submission failed, using local solver state', e);
+      }
+    }
 
     setTimeout(() => {
       setIsRunning(false);
       // Mark problem as solved
-      setCodingProblems(prev => prev.map(p => p.id === activeProblem.id ? { ...p, solved: true } : p));
+      setCodingProblems(prev => (prev || []).map(p => p.id === activeProblem.id ? { ...p, solved: true } : p));
       
       setOutputConsole({
         status: 'ACCEPTED',

@@ -11,6 +11,7 @@ public class Resume {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne
     @JoinColumn(name = "student_id", nullable = false)
     private User student;
@@ -21,6 +22,7 @@ public class Resume {
     private int atsScore = 88;
     private String status = "Scanned & Verified";
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] fileData;

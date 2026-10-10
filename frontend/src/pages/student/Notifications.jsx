@@ -37,13 +37,13 @@ const Notifications = () => {
 
       {/* Notifications Feed */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-        {notifications.length === 0 ? (
+        {(notifications || []).length === 0 ? (
           <div className="card" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
             <Bell size={36} style={{ marginBottom: '0.5rem', opacity: 0.5 }} />
             <p>No notifications available.</p>
           </div>
         ) : (
-          notifications.map(n => (
+          (notifications || []).map(n => (
             <div
               key={n.id}
               className="card"

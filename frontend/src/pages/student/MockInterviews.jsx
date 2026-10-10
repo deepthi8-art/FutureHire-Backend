@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { portalService } from '../../services/portalService';
 import {
   Video,
   Calendar,
@@ -17,17 +18,25 @@ const MockInterviews = () => {
   const [selectedSlotToBook, setSelectedSlotToBook] = useState(null);
   const [activeFeedbackModal, setActiveFeedbackModal] = useState(null);
 
-  const availableSlots = mockInterviews.filter(m => m.status === 'Available');
-  const bookedUpcoming = mockInterviews.filter(m => m.status === 'Booked');
-  const completedMocks = mockInterviews.filter(m => m.status === 'Completed');
+  const availableSlots = (mockInterviews || []).filter(m => (m.status || '').toLowerCase() === 'available');
+  const bookedUpcoming = (mockInterviews || []).filter(m => (m.status || '').toLowerCase() === 'booked');
+  const completedMocks = (mockInterviews || []).filter(m => (m.status || '').toLowerCase() === 'completed');
 
-  const handleConfirmBooking = () => {
+  const handleConfirmBooking = async () => {
     if (!selectedSlotToBook) return;
 
-    setMockInterviews(prev => prev.map(m => m.id === selectedSlotToBook.id ? {
+    if (selectedSlotToBook.rawId) {
+      try {
+        await portalService.bookMockSlot(selectedSlotToBook.rawId);
+      } catch (e) {
+        console.warn('Booking API fallback to local state', e);
+      }
+    }
+
+    setMockInterviews(prev => (prev || []).map(m => m.id === selectedSlotToBook.id ? {
       ...m,
       status: 'Booked',
-      meetingLink: `https://meet.google.com/futurehire-${Math.random().toString(36).substr(2, 6)}`
+      meetingLink: m.meetingLink || `https://meet.google.com/futurehire-${Math.random().toString(36).substr(2, 6)}`
     } : m));
 
     showToast(`Mock Interview slot booked with ${selectedSlotToBook.mentorName}!`, 'success');

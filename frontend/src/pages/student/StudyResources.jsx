@@ -27,14 +27,17 @@ const StudyResources = () => {
     'HR Interview'
   ];
 
-  const filteredResources = resources.filter(res => {
-    const matchesSearch = res.title.toLowerCase().includes(searchTerm.toLowerCase()) || res.category.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredResources = (resources || []).filter(res => {
+    const title = (res.title || '').toLowerCase();
+    const cat = (res.category || '').toLowerCase();
+    const q = (searchTerm || '').toLowerCase();
+    const matchesSearch = !q || title.includes(q) || cat.includes(q);
     const matchesCat = selectedCategory === 'All' || res.category === selectedCategory;
     return matchesSearch && matchesCat;
   });
 
   const handleDownload = (res) => {
-    showToast(`Downloading "${res.title}" (${res.size})...`, 'success');
+    showToast(`Downloading "${res.title}" (${res.size || res.fileSize || 'PDF'})...`, 'success');
   };
 
   return (

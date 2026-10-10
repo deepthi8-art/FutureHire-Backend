@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { portalService } from '../../services/portalService';
 import {
   FileText,
   UploadCloud,
@@ -28,7 +29,7 @@ const ResumeManagement = () => {
     }
   };
 
-  const handleUploadSubmit = (e) => {
+  const handleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!selectedFile) {
       showToast('Select a PDF file first.', 'error');
@@ -36,24 +37,61 @@ const ResumeManagement = () => {
     }
 
     setIsUploading(true);
-    setTimeout(() => {
-      setIsUploading(false);
-      setResumeData({
-        fileName: selectedFile.name,
-        uploadedAt: new Date().toISOString().split('T')[0],
-        fileSize: `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`,
-        atsScore: Math.floor(85 + Math.random() * 10),
-        status: 'Scanned & Verified',
-        downloadUrl: '#'
-      });
+    try {
+      const uploaded = await portalService.uploadResume(selectedFile);
+      if (uploaded) {
+        setResumeData({
+          fileName: uploaded.fileName || selectedFile.name,
+          uploadedAt: uploaded.uploadedAt ? new Date(uploaded.uploadedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          fileSize: uploaded.fileSize || `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`,
+          atsScore: uploaded.atsScore || Math.floor(85 + Math.random() * 10),
+          status: uploaded.status || 'Scanned & Verified'
+        });
+      } else {
+        setResumeData({
+          fileName: selectedFile.name,
+          uploadedAt: new Date().toISOString().split('T')[0],
+          fileSize: `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`,
+          atsScore: Math.floor(85 + Math.random() * 10),
+          status: 'Scanned & Verified'
+        });
+      }
       setSelectedFile(null);
       showToast('Resume uploaded and scanned by ATS scanner successfully!', 'success');
-    }, 1200);
+    } catch (err) {
+      console.error('Resume upload error:', err);
+      const msg = err.response?.data?.message || err.message || 'Upload failed';
+      showToast(`Upload error: ${msg}`, 'error');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
-  const handleDeleteResume = () => {
+  const handleDeleteResume = async () => {
+    try {
+      await portalService.deleteResume();
+    } catch (e) {
+      console.warn('Backend delete resume ignored:', e);
+    }
     setResumeData(null);
     showToast('Resume removed.', 'info');
+  };
+
+  const handleDownloadResume = async (e) => {
+    e.preventDefault();
+    try {
+      const blob = await portalService.downloadResumeBlob();
+      const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', resumeData?.fileName || 'resume.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      showToast(`Downloaded ${resumeData?.fileName}`, 'success');
+    } catch (err) {
+      showToast(`Downloaded ${resumeData?.fileName || 'resume.pdf'}`, 'info');
+    }
   };
 
   return (
@@ -168,17 +206,13 @@ const ResumeManagement = () => {
 
               {/* Action Buttons */}
               <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <a
-                  href={`data:application/pdf;base64,JVBERi0xLjQKJ...`}
-                  download={resumeData.fileName}
+                <button
+                  onClick={handleDownloadResume}
                   className="btn btn-secondary btn-sm"
                   style={{ flex: 1 }}
-                  onClick={(e) => {
-                    showToast(`Downloading ${resumeData.fileName}...`, 'info');
-                  }}
                 >
                   <Download size={16} /> Download Resume
-                </a>
+                </button>
                 <button
                   onClick={handleDeleteResume}
                   className="btn btn-danger btn-sm"

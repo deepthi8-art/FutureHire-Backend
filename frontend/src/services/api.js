@@ -19,6 +19,12 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // For FormData uploads (e.g. resumes), let axios/browser set multipart/form-data with boundary automatically
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+      if (config.headers.common) delete config.headers.common['Content-Type'];
+      if (config.headers.post) delete config.headers.post['Content-Type'];
+    }
     return config;
   },
   (error) => Promise.reject(error)

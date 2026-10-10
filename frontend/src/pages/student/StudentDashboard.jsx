@@ -20,10 +20,23 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'rec
 import { progressChartData } from '../../data/mockData';
 
 const StudentDashboard = () => {
-  const { user, codingProblems, mockInterviews, notifications } = useAuth();
+  const { user, codingProblems, mockInterviews, notifications, quizResults, resumeData } = useAuth();
 
-  const solvedCount = codingProblems.filter(p => p.solved).length;
-  const upcomingMocks = mockInterviews.filter(m => m.status === 'Available' || m.status === 'Booked');
+  const totalCoding = (codingProblems || []).length || 1;
+  const solvedCount = (codingProblems || []).filter(p => p.solved).length;
+  const upcomingMocks = (mockInterviews || []).filter(m => (m.status || '').toLowerCase() === 'available' || (m.status || '').toLowerCase() === 'booked');
+  const completedMocks = (mockInterviews || []).filter(m => (m.status || '').toLowerCase() === 'completed').length;
+
+  const avgAptitude = quizResults && quizResults.length > 0
+    ? Math.round(quizResults.reduce((acc, q) => acc + (q.percentage || 0), 0) / quizResults.length)
+    : 85;
+
+  const codingWeight = (solvedCount / totalCoding) * 35;
+  const aptitudeWeight = (avgAptitude / 100) * 30;
+  const resumeWeight = resumeData ? 20 : 5;
+  const mockWeight = Math.min(15, completedMocks * 5 + 5);
+  const readinessScore = Math.min(100, Math.max(20, Math.round(codingWeight + aptitudeWeight + resumeWeight + mockWeight)));
+  const tierQualification = readinessScore >= 80 ? 'Tier-1 Qualified' : (readinessScore >= 60 ? 'Tier-2 Qualified' : 'OA Preparation Active');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
@@ -44,10 +57,10 @@ const StudentDashboard = () => {
             <Sparkles size={14} /> Placement Season 2026 Active
           </div>
           <h1 style={{ fontSize: '2rem', color: '#FFF', marginBottom: '0.5rem' }}>
-            Welcome back, {user?.name || 'Student'}! 👋
+            Welcome back, {user?.name || user?.fullName || 'Student'}! 👋
           </h1>
           <p style={{ opacity: 0.9, fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-            You are currently <strong style={{ color: '#FDE047' }}>85% Placement Ready</strong>. Keep momentum going by solving 2 medium array problems today or booking a mock interview!
+            You are currently <strong style={{ color: '#FDE047' }}>{readinessScore}% Placement Ready</strong>. Keep momentum going by solving coding problems or booking a mock interview!
           </p>
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <Link to="/student/coding-practice" className="btn btn-secondary btn-sm" style={{ color: 'var(--primary-700)', fontWeight: '700' }}>
@@ -64,39 +77,39 @@ const StudentDashboard = () => {
       <div className="grid-4">
         <StatCard
           title="Coding Solved"
-          value={`${solvedCount} / ${codingProblems.length}`}
+          value={`${solvedCount} / ${totalCoding}`}
           icon={Code}
           trend="up"
-          trendValue="+12 this week"
+          trendValue={`${solvedCount > 0 ? `+${solvedCount}` : '0'} completed`}
           color="primary"
-          description="Target: 200 problems"
+          description={`Target: ${totalCoding} problems`}
         />
         <StatCard
           title="Aptitude Score"
-          value="88%"
+          value={`${avgAptitude}%`}
           icon={Brain}
           trend="up"
-          trendValue="+5% accuracy"
+          trendValue={quizResults?.length > 0 ? `${quizResults.length} quizzes taken` : 'Average accuracy'}
           color="purple"
-          description="Average across 12 tests"
+          description="Across Quant, Logical & Verbal"
         />
         <StatCard
           title="Mock Interviews"
-          value="4 Done"
+          value={`${completedMocks} Done`}
           icon={Video}
           trend="up"
-          trendValue="4.8/5 Avg Rating"
+          trendValue={upcomingMocks.length > 0 ? `${upcomingMocks.length} available` : 'Next scheduled'}
           color="cyan"
-          description="Next: 10th Oct"
+          description="Mentor evaluated"
         />
         <StatCard
           title="Readiness Score"
-          value="85%"
+          value={`${readinessScore}%`}
           icon={Trophy}
           trend="up"
-          trendValue="Tier 1 Qualified"
+          trendValue={tierQualification}
           color="emerald"
-          description="Based on solving speed"
+          description="Live composite rating"
         />
       </div>
 

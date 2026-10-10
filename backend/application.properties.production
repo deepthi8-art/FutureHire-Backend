@@ -1,0 +1,2 @@
+# Deprecated template. Activate the production profile and provide all secrets through the host.
+spring.profiles.active=prod
