@@ -1,5 +1,33 @@
 import api from './api';
 
+// ─── Data Mappers ────────────────────────────────────────────────────────────
+const toExperience = (experience) => ({
+  ...experience,
+  author: experience.student?.fullName || experience.student?.name || 'Student',
+  college: experience.student?.studentProfile?.collegeName || '',
+  company: experience.companyName || experience.company || '',
+  role: experience.roleTitle || experience.role || '',
+  verdict: experience.verdict || 'Unknown',
+  packageOffered: experience.packageOffered || 'N/A',
+  difficulty: experience.difficulty || 'Medium',
+  date: experience.interviewDate || experience.date || new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }),
+  content: experience.content || '',
+  tips: experience.tips || 'Keep practising and stay consistent!',
+});
+
+const toQuizQuestion = (question) => ({
+  id: question.id,
+  question: question.questionText,
+  // Backend returns options as an array from AptitudeService
+  options: question.options || [
+    question.optionA,
+    question.optionB,
+    question.optionC,
+    question.optionD,
+  ].filter(Boolean),
+});
+
+// ─── Portal Service ───────────────────────────────────────────────────────────
 export const portalService = {
   // --- Student Coding ---
   getCodingProblems: async (difficulty = '') => {
@@ -7,7 +35,7 @@ export const portalService = {
       const response = await api.get(`/student/coding/problems${difficulty ? `?difficulty=${difficulty}` : ''}`);
       return response.data?.data;
     } catch (e) {
-      console.warn("Backend API endpoint fallback to local data", e.message);
+      console.warn('Coding problems API failed', e.message);
       return null;
     }
   },
@@ -17,7 +45,7 @@ export const portalService = {
       const response = await api.post('/student/coding/submissions', { problemId, sourceCode, language });
       return response.data?.data;
     } catch (e) {
-      console.warn("Backend submission fallback", e.message);
+      console.warn('Submission failed', e.message);
       return null;
     }
   },
@@ -35,7 +63,9 @@ export const portalService = {
   getQuizQuestions: async (quizId) => {
     try {
       const response = await api.get(`/student/aptitude/quizzes/${quizId}/questions`);
-      return response.data?.data;
+      const raw = response.data?.data;
+      if (Array.isArray(raw)) return raw.map(toQuizQuestion);
+      return raw;
     } catch (e) {
       return null;
     }
@@ -44,6 +74,15 @@ export const portalService = {
   submitQuiz: async (quizId, answersMap) => {
     try {
       const response = await api.post(`/student/aptitude/quizzes/${quizId}/submit`, answersMap);
+      return response.data?.data;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  getQuizResults: async () => {
+    try {
+      const response = await api.get('/student/aptitude/results');
       return response.data?.data;
     } catch (e) {
       return null;
@@ -67,11 +106,11 @@ export const portalService = {
       const formData = new FormData();
       formData.append('file', file);
       const response = await api.post('/student/resumes/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       return response.data?.data;
     } catch (e) {
-      return null;
+      throw e; // propagate so UI can show error
     }
   },
 
@@ -80,10 +119,18 @@ export const portalService = {
       const response = await api.get('/student/resumes');
       return response.data?.data;
     } catch (e) {
-      // 404 means no resume uploaded yet — not an error
       if (e?.response?.status === 404) return null;
       console.warn('Resume fetch failed', e.message);
       return null;
+    }
+  },
+
+  deleteResume: async () => {
+    try {
+      const response = await api.delete('/student/resumes');
+      return response.data?.success;
+    } catch (e) {
+      return false;
     }
   },
 
@@ -91,7 +138,9 @@ export const portalService = {
   getInterviewExperiences: async () => {
     try {
       const response = await api.get('/student/interviews/experiences');
-      return response.data?.data;
+      const raw = response.data?.data;
+      if (Array.isArray(raw)) return raw.map(toExperience);
+      return raw;
     } catch (e) {
       return null;
     }
@@ -100,9 +149,10 @@ export const portalService = {
   shareExperience: async (expData) => {
     try {
       const response = await api.post('/student/interviews/experiences', expData);
-      return response.data?.data;
+      const raw = response.data?.data;
+      return raw ? toExperience(raw) : null;
     } catch (e) {
-      return null;
+      throw e;
     }
   },
 
@@ -116,12 +166,21 @@ export const portalService = {
     }
   },
 
+  getMyMockInterviews: async () => {
+    try {
+      const response = await api.get('/student/mock-interviews/my');
+      return response.data?.data;
+    } catch (e) {
+      return null;
+    }
+  },
+
   bookMockSlot: async (slotId) => {
     try {
       const response = await api.post(`/student/mock-interviews/book/${slotId}`);
       return response.data?.data;
     } catch (e) {
-      return null;
+      throw e;
     }
   },
 
@@ -194,5 +253,5 @@ export const portalService = {
     } catch (e) {
       return null;
     }
-  }
+  },
 };

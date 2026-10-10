@@ -16,13 +16,15 @@ import {
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => authService.getCurrentUser() || initialStudentProfile);
-  const [isAuthenticated, setIsAuthenticated] = useState(() => !!authService.getCurrentUser() || true);
+  const [user, setUser] = useState(() => authService.getCurrentUser());
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!authService.getCurrentUser());
   const [theme, setTheme] = useState(() => localStorage.getItem('futurehire_theme') || 'light');
   const [toasts, setToasts] = useState([]);
 
   // Managed Application State initialized with defaults & synced with Spring Boot API
   const [codingProblems, setCodingProblems] = useState(initialCodingProblems);
+  const [codingProgress, setCodingProgress] = useState(null);
+  const [quizResults, setQuizResults] = useState([]);
   const [aptitudeQuizzes, setAptitudeQuizzes] = useState(initialAptitudeQuizzes);
   const [companies, setCompanies] = useState(initialCompanies);
   const [experiences, setExperiences] = useState(initialInterviewExperiences);
@@ -31,6 +33,7 @@ export const AuthProvider = ({ children }) => {
   const [notifications, setNotifications] = useState(initialNotifications);
   const [adminUsers, setAdminUsers] = useState(initialAdminUsersList);
   const [resumeData, setResumeData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Fetch real data from Spring Boot REST API when authenticated
   useEffect(() => {
@@ -75,9 +78,15 @@ export const AuthProvider = ({ children }) => {
     };
 
     if (isAuthenticated) {
-      fetchBackendData();
+      setIsLoading(true);
+      fetchBackendData().finally(() => setIsLoading(false));
       const currentUser = authService.getCurrentUser();
-      if (currentUser?.role === 'admin') fetchAdminData();
+      if (currentUser?.role === 'admin' || currentUser?.role === 'ROLE_ADMIN') fetchAdminData();
+      // Also load quiz results and coding progress for authenticated students
+      if (currentUser?.role === 'student' || currentUser?.role === 'ROLE_STUDENT') {
+        portalService.getResumeDetails().then(r => { if (r) setResumeData(r); });
+        portalService.getQuizResults?.().then(r => { if (r?.length > 0) setQuizResults(r); }).catch(() => {});
+      }
     }
   }, [isAuthenticated]);
 
@@ -103,11 +112,11 @@ export const AuthProvider = ({ children }) => {
     setUser(result.user);
     setIsAuthenticated(true);
     showToast(`Welcome back, ${result.user.name}!`, 'success');
-    // Fetch resume for student accounts after login
-    if (result.user.role === 'student') {
+    // Fetch resume and quiz results for student accounts after login
+    if (result.user.role === 'student' || result.user.role === 'ROLE_STUDENT') {
       portalService.getResumeDetails().then(r => { if (r) setResumeData(r); });
+      portalService.getQuizResults?.().then(r => { if (r?.length > 0) setQuizResults(r); }).catch(() => {});
     }
-
     return result.user;
   };
 
@@ -147,6 +156,10 @@ export const AuthProvider = ({ children }) => {
         // Shared state & updaters
         codingProblems,
         setCodingProblems,
+        codingProgress,
+        setCodingProgress,
+        quizResults,
+        setQuizResults,
         aptitudeQuizzes,
         setAptitudeQuizzes,
         companies,
@@ -163,7 +176,8 @@ export const AuthProvider = ({ children }) => {
         adminUsers,
         setAdminUsers,
         resumeData,
-        setResumeData
+        setResumeData,
+        isLoading
       }}
     >
       {children}

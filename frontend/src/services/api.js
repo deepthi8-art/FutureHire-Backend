@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// API Base URL from environment or default Spring Boot backend URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api';
+// API Base URL — uses Vercel env var in production, falls back to Render backend
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://futurehire-backend.onrender.com/api';
 
 
 const api = axios.create({
@@ -9,7 +9,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: 60000, // 60s — Render free tier cold start can take ~30-50s
 });
 
 // Request Interceptor: Attach JWT Bearer Token if available
