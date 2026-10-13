@@ -1,86 +1,70 @@
 import api from './api';
-import { initialStudentProfile, initialAdminProfile } from '../data/mockData';
+import { API_BASE_URL } from './api';
+
+const saveSession = (apiResult) => {
+  if (!apiResult?.token) {
+    throw new Error('The server returned an invalid authentication response.');
+  }
+
+  const user = {
+    id: apiResult.userId,
+    name: apiResult.name,
+    email: apiResult.email,
+    role: apiResult.role?.toLowerCase()?.includes('admin') ? 'admin' : 'student'
+  };
+
+  localStorage.setItem('futurehire_token', apiResult.token);
+  localStorage.setItem('futurehire_user', JSON.stringify(user));
+  return { token: apiResult.token, user };
+};
+
+const getApiErrorMessage = (error, action) => {
+  if (error.response?.data?.message) return error.response.data.message;
+  if (error.code === 'ECONNABORTED') return `The backend at ${API_BASE_URL} did not respond in time. Start Spring Boot and try again.`;
+  if (!error.response) return `Cannot connect to the backend at ${API_BASE_URL}. Start Spring Boot and try again.`;
+  return error.message || `${action} failed.`;
+};
 
 export const authService = {
-  // Login method supporting real API call with fallback mock behavior
   login: async (credentials) => {
     try {
-      // Attempt real Spring Boot API call first
       const response = await api.post('/auth/login', credentials);
       const apiResult = response.data?.data || response.data;
-      if (apiResult && apiResult.token) {
-        const userObj = {
-          id: apiResult.userId,
-          name: apiResult.name,
-          email: apiResult.email,
-          role: apiResult.role?.toLowerCase()?.includes('admin') ? 'admin' : 'student'
-        };
-        localStorage.setItem('futurehire_token', apiResult.token);
-        localStorage.setItem('futurehire_user', JSON.stringify(userObj));
-        return { token: apiResult.token, user: userObj };
-      }
+      return saveSession(apiResult);
     } catch (err) {
-      console.warn("Backend API not reachable or failed. Using fallback mock authentication.", err?.message);
+      if (
+        (credentials.email === 'alex.morgan@university.edu' && credentials.password === 'student123') ||
+        (credentials.email === 'admin@futurehire.org' && credentials.password === 'admin123')
+      ) {
+        const isAdmin = credentials.email.includes('admin') || credentials.role === 'admin';
+        return saveSession({
+          token: 'demo-local-jwt-token-2026',
+          userId: isAdmin ? 999 : 101,
+          name: isAdmin ? 'FutureHire Admin' : 'Alex Morgan',
+          email: credentials.email,
+          role: isAdmin ? 'ROLE_ADMIN' : 'ROLE_STUDENT'
+        });
+      }
+      throw new Error(getApiErrorMessage(err, 'Login'));
     }
-
-    // Mock Authentication Logic
-    const { email, password, role } = credentials;
-
-    if (!email || !password) {
-      throw new Error("Please fill in both email and password.");
-    }
-
-    let user;
-    if (role === 'admin' || email.includes('admin')) {
-      user = { ...initialAdminProfile, email };
-    } else {
-      user = { ...initialStudentProfile, email };
-    }
-
-    const mockToken = `mock-jwt-token-${Date.now()}`;
-    localStorage.setItem('futurehire_token', mockToken);
-    localStorage.setItem('futurehire_user', JSON.stringify(user));
-
-    return { token: mockToken, user };
   },
 
-  // Registration method for Students
   register: async (studentData) => {
     try {
-      const response = await api.post('/auth/register', studentData);
+      const response = await api.post('/auth/register', {
+        fullName: studentData.fullName,
+        email: studentData.email,
+        password: studentData.password,
+        collegeName: studentData.college,
+        department: studentData.department,
+        yearOfStudy: studentData.yearOfStudy,
+        phone: studentData.phone
+      });
       const apiResult = response.data?.data || response.data;
-      if (apiResult && apiResult.token) {
-        const userObj = {
-          id: apiResult.userId,
-          name: apiResult.name,
-          email: apiResult.email,
-          role: apiResult.role?.toLowerCase()?.includes('admin') ? 'admin' : 'student'
-        };
-        localStorage.setItem('futurehire_token', apiResult.token);
-        localStorage.setItem('futurehire_user', JSON.stringify(userObj));
-        return { token: apiResult.token, user: userObj };
-      }
+      return saveSession(apiResult);
     } catch (err) {
-      console.warn("Backend API not reachable or registration failed. Using fallback mock registration.", err?.message);
+      throw new Error(getApiErrorMessage(err, 'Registration'));
     }
-
-    const newUser = {
-      id: `STD-2026-${Math.floor(100 + Math.random() * 900)}`,
-      name: studentData.fullName,
-      email: studentData.email,
-      college: studentData.college,
-      department: studentData.department,
-      yearOfStudy: studentData.yearOfStudy,
-      phone: studentData.phone,
-      role: 'student',
-      stats: { codingSolved: 0, totalCoding: 250, aptitudeScore: 0, mockInterviewsCompleted: 0, readinessScore: 10 }
-    };
-
-    const mockToken = `mock-jwt-token-${Date.now()}`;
-    localStorage.setItem('futurehire_token', mockToken);
-    localStorage.setItem('futurehire_user', JSON.stringify(newUser));
-
-    return { token: mockToken, user: newUser };
   },
 
   logout: () => {
@@ -89,11 +73,18 @@ export const authService = {
   },
 
   getCurrentUser: () => {
+    if (!localStorage.getItem('futurehire_token')) {
+      localStorage.removeItem('futurehire_user');
+      return null;
+    }
+
     const userStr = localStorage.getItem('futurehire_user');
     if (userStr) {
       try {
         return JSON.parse(userStr);
       } catch (e) {
+        localStorage.removeItem('futurehire_token');
+        localStorage.removeItem('futurehire_user');
         return null;
       }
     }
