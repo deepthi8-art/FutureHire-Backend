@@ -29,6 +29,7 @@ public class AptitudeQuestion {
     private int correctOptionIndex; // 0, 1, 2, or 3
 
     @Column(columnDefinition = "TEXT")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String explanation;
 
     public AptitudeQuestion() {}

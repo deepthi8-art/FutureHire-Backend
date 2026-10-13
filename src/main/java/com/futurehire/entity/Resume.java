@@ -1,6 +1,5 @@
 package com.futurehire.entity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -12,18 +11,19 @@ public class Resume {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne
     @JoinColumn(name = "student_id", nullable = false)
     private User student;
 
     private String fileName;
     private String fileType = "application/pdf";
-    private String fileSize = "1.4 MB";
+    private String fileSize;
     private int atsScore;
     private String status = "Uploaded";
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @Lob
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(columnDefinition = "LONGBLOB")
     private byte[] fileData;
 
