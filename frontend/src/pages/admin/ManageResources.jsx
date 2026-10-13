@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { portalService } from '../../services/portalService';
 import {
   FolderGit2,
   PlusCircle,
@@ -17,36 +18,36 @@ const ManageResources = () => {
     category: 'Data Structures',
     format: 'PDF',
     size: '12.0 MB',
-    author: 'Placement Cell'
+    author: 'Placement Cell',
+    fileUrl: ''
   });
 
-  const handleAddResource = (e) => {
+  const handleAddResource = async (e) => {
     e.preventDefault();
     if (!resForm.title) {
       showToast('Please enter resource title.', 'error');
       return;
     }
 
-    const newRes = {
-      id: `RES-${Date.now()}`,
-      title: resForm.title,
-      category: resForm.category,
-      format: resForm.format,
-      size: resForm.size,
-      downloads: 0,
-      author: resForm.author,
-      downloadUrl: '#'
-    };
-
-    setResources([newRes, ...resources]);
-    showToast(`Resource "${resForm.title}" uploaded!`, 'success');
-    setShowAddModal(false);
-    setResForm({ title: '', category: 'Data Structures', format: 'PDF', size: '12.0 MB', author: 'Placement Cell' });
+    try {
+      const savedResource = await portalService.createAdminResource(resForm);
+      setResources(prev => [savedResource, ...prev]);
+      showToast(`Resource "${resForm.title}" added.`, 'success');
+      setShowAddModal(false);
+      setResForm({ title: '', category: 'Data Structures', format: 'PDF', size: '12.0 MB', author: 'Placement Cell', fileUrl: '' });
+    } catch (error) {
+      showToast(error.response?.data?.message || error.message || 'Could not add resource.', 'error');
+    }
   };
 
-  const handleDeleteResource = (id) => {
-    setResources(prev => prev.filter(r => r.id !== id));
-    showToast('Study resource deleted.', 'info');
+  const handleDeleteResource = async (rawId, id) => {
+    try {
+      await portalService.deleteAdminResource(rawId);
+      setResources(prev => prev.filter(resource => resource.id !== id));
+      showToast('Study resource deleted.', 'info');
+    } catch (error) {
+      showToast(error.response?.data?.message || error.message || 'Could not delete resource.', 'error');
+    }
   };
 
   return (
@@ -78,7 +79,7 @@ const ManageResources = () => {
               </div>
             </div>
 
-            <button onClick={() => handleDeleteResource(res.id)} className="btn btn-danger btn-sm" style={{ width: '100%' }}>
+            <button onClick={() => handleDeleteResource(res.rawId, res.id)} className="btn btn-danger btn-sm" style={{ width: '100%' }}>
               <Trash2 size={15} /> Remove Resource
             </button>
           </div>
@@ -89,7 +90,7 @@ const ManageResources = () => {
       {showAddModal && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '480px' }}>
-            <h3 style={{ fontSize: '1.35rem', marginBottom: '1rem' }}>Upload Study Guide PDF</h3>
+            <h3 style={{ fontSize: '1.35rem', marginBottom: '1rem' }}>Add Study Resource Link</h3>
             <form onSubmit={handleAddResource}>
               <div className="form-group">
                 <label className="form-label">Material Title</label>
@@ -119,9 +120,21 @@ const ManageResources = () => {
                 </select>
               </div>
 
+              <div className="form-group">
+                <label className="form-label">Hosted File URL</label>
+                <input
+                  type="url"
+                  required
+                  placeholder="https://..."
+                  value={resForm.fileUrl}
+                  onChange={(e) => setResForm({ ...resForm, fileUrl: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.25rem' }}>
                 <button type="button" onClick={() => setShowAddModal(false)} className="btn btn-secondary btn-sm">Cancel</button>
-                <button type="submit" className="btn btn-primary btn-sm">Upload File</button>
+                <button type="submit" className="btn btn-primary btn-sm">Save Resource</button>
               </div>
             </form>
           </div>

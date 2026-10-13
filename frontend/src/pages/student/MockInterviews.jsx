@@ -25,22 +25,17 @@ const MockInterviews = () => {
   const handleConfirmBooking = async () => {
     if (!selectedSlotToBook) return;
 
-    if (selectedSlotToBook.rawId) {
-      try {
-        await portalService.bookMockSlot(selectedSlotToBook.rawId);
-      } catch (e) {
-        console.warn('Booking API fallback to local state', e);
-      }
+    try {
+      const bookedSlot = await portalService.bookMockSlot(selectedSlotToBook.rawId);
+      setMockInterviews(prev => [
+        ...(prev || []).filter(slot => slot.id !== bookedSlot.id),
+        bookedSlot
+      ]);
+      showToast(`Mock interview booked with ${bookedSlot.mentorName}.`, 'success');
+      setSelectedSlotToBook(null);
+    } catch (error) {
+      showToast(error.response?.data?.message || error.message || 'Booking failed.', 'error');
     }
-
-    setMockInterviews(prev => (prev || []).map(m => m.id === selectedSlotToBook.id ? {
-      ...m,
-      status: 'Booked',
-      meetingLink: m.meetingLink || `https://meet.google.com/futurehire-${Math.random().toString(36).substr(2, 6)}`
-    } : m));
-
-    showToast(`Mock Interview slot booked with ${selectedSlotToBook.mentorName}!`, 'success');
-    setSelectedSlotToBook(null);
   };
 
   return (
@@ -73,14 +68,18 @@ const MockInterviews = () => {
                 </div>
               </div>
 
-              <a
-                href={slot.meetingLink}
-                target="_blank"
-                rel="noreferrer"
-                className="btn btn-primary btn-sm"
-              >
-                Join Video Meeting <ExternalLink size={14} />
-              </a>
+              {slot.meetingLink ? (
+                <a
+                  href={slot.meetingLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn-primary btn-sm"
+                >
+                  Join Video Meeting <ExternalLink size={14} />
+                </a>
+              ) : (
+                <span className="badge badge-medium">Meeting details pending</span>
+              )}
             </div>
           ))}
         </div>

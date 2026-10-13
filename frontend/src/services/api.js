@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-// API Base URL — uses Vercel env var in production, falls back to Render backend
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://futurehire-backend.onrender.com/api';
+// Local development goes through Vite's /api proxy; deployments set VITE_API_BASE_URL.
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (
+  import.meta.env.DEV
+    ? '/api'
+    : 'https://futurehire-backend.onrender.com/api'
+);
 
 
 const api = axios.create({
@@ -9,7 +13,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 60000, // 60s — Render free tier cold start can take ~30-50s
+  timeout: import.meta.env.DEV ? 20000 : 60000,
 });
 
 // Request Interceptor: Attach JWT Bearer Token if available
@@ -38,6 +42,7 @@ api.interceptors.response.use(
       // Clear token on 401 unauthorized
       localStorage.removeItem('futurehire_token');
       localStorage.removeItem('futurehire_user');
+      window.dispatchEvent(new Event('futurehire:unauthorized'));
     }
     return Promise.reject(error);
   }

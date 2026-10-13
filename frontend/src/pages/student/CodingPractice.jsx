@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import confetti from 'canvas-confetti';
+import { portalService } from '../../services/portalService';
 import {
   Code,
   Search,
@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 const CodingPractice = () => {
-  const { codingProblems, setCodingProblems, showToast } = useAuth();
+  const { codingProblems, showToast } = useAuth();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
@@ -64,58 +64,40 @@ const CodingPractice = () => {
   };
 
   const handleRunCode = () => {
-    setIsRunning(true);
-    setOutputConsole({ status: 'Running', text: 'Executing sample test cases against compiler engine...' });
-    
-    setTimeout(() => {
-      setIsRunning(false);
-      setOutputConsole({
-        status: 'Accepted',
-        testCasesPassed: '3/3 Test Cases Passed',
-        runtime: '42 ms',
-        memory: '14.2 MB',
-        output: `Sample Output: ${activeProblem?.sampleOutput || 'Passed'}\nConsole Log: Code executed cleanly with zero syntax errors.`
-      });
-      showToast('Sample test cases passed!', 'success');
-    }, 800);
+    setOutputConsole({
+      status: 'Unavailable',
+      text: 'Code execution is not configured. No code was run.'
+    });
   };
 
   const handleSubmitCode = async () => {
-    setIsRunning(true);
-    setOutputConsole({ status: 'Running', text: 'Submitting solution to automated evaluator...' });
-
-    if (activeProblem?.rawId) {
-      try {
-        await portalService.submitCodingSolution(activeProblem.rawId, userCode, selectedLanguage);
-      } catch (e) {
-        console.warn('API submission failed, using local solver state', e);
-      }
+    if (!activeProblem || !userCode.trim()) {
+      showToast('Enter a solution before submitting.', 'error');
+      return;
     }
 
-    setTimeout(() => {
-      setIsRunning(false);
-      // Mark problem as solved
-      setCodingProblems(prev => (prev || []).map(p => p.id === activeProblem.id ? { ...p, solved: true } : p));
-      
+    setIsRunning(true);
+    setOutputConsole({ status: 'Submitting', text: 'Saving your submission...' });
+    try {
+      const submission = await portalService.submitCodingSolution(
+        activeProblem.rawId,
+        userCode,
+        selectedLanguage
+      );
       setOutputConsole({
-        status: 'ACCEPTED',
-        testCasesPassed: '45/45 Hidden Test Cases Passed',
-        runtime: '38 ms (Beats 94.2% of submissions)',
-        memory: '13.8 MB',
-        output: '🎉 Congratulations! Your submission passed all test cases!'
+        status: submission.status,
+        text: 'Submission saved. Automated evaluation is not configured.'
       });
-
-      // Trigger Confetti Celebration!
-      try {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
-      } catch (e) {}
-
-      showToast(`Problem "${activeProblem.title}" solved successfully!`, 'success');
-    }, 1200);
+      showToast('Your solution was submitted.', 'success');
+    } catch (error) {
+      setOutputConsole({
+        status: 'Error',
+        text: error.response?.data?.message || error.message || 'Submission failed.'
+      });
+      showToast(error.response?.data?.message || error.message || 'Submission failed.', 'error');
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   return (

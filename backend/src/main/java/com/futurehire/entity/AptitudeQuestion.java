@@ -1,6 +1,7 @@
 package com.futurehire.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 @Entity
@@ -24,9 +25,11 @@ public class AptitudeQuestion {
     private String optionC;
     private String optionD;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private int correctOptionIndex; // 0, 1, 2, or 3
 
     @Column(columnDefinition = "TEXT")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String explanation;
 
     public AptitudeQuestion() {}

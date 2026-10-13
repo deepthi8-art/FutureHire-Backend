@@ -58,19 +58,12 @@ const InterviewExperiences = () => {
 
     try {
       const created = await portalService.shareExperience(newShare);
-      if (created) {
-        setExperiences(prev => [created, ...(prev || [])]);
-      } else {
-        const localCreated = { id: `EXP-${Date.now()}`, ...newShare };
-        setExperiences(prev => [localCreated, ...(prev || [])]);
-      }
+      if (!created) throw new Error('The server did not return the saved experience.');
+      setExperiences(prev => [created, ...(prev || [])]);
       setShowShareModal(false);
-      showToast('Interview experience published! Thank you for sharing.', 'success');
+      showToast('Interview experience published. Thank you for sharing.', 'success');
     } catch (err) {
-      const localCreated = { id: `EXP-${Date.now()}`, ...newShare };
-      setExperiences(prev => [localCreated, ...(prev || [])]);
-      setShowShareModal(false);
-      showToast('Interview experience published! Thank you for sharing.', 'success');
+      showToast(err.response?.data?.message || err.message || 'Could not publish experience.', 'error');
     }
   };
 

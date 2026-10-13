@@ -18,9 +18,9 @@ public class Resume {
 
     private String fileName;
     private String fileType = "application/pdf";
-    private String fileSize = "1.4 MB";
-    private int atsScore = 88;
-    private String status = "Scanned & Verified";
+    private String fileSize;
+    private int atsScore;
+    private String status = "Uploaded";
 
     @com.fasterxml.jackson.annotation.JsonIgnore
     @Lob

@@ -25,6 +25,10 @@ const ResumeManagement = () => {
         showToast('Please upload a PDF file only.', 'error');
         return;
       }
+      if (file.size > 20 * 1024 * 1024) {
+        showToast('The PDF must be 20 MB or smaller.', 'error');
+        return;
+      }
       setSelectedFile(file);
     }
   };
@@ -39,25 +43,10 @@ const ResumeManagement = () => {
     setIsUploading(true);
     try {
       const uploaded = await portalService.uploadResume(selectedFile);
-      if (uploaded) {
-        setResumeData({
-          fileName: uploaded.fileName || selectedFile.name,
-          uploadedAt: uploaded.uploadedAt ? new Date(uploaded.uploadedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          fileSize: uploaded.fileSize || `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`,
-          atsScore: uploaded.atsScore || Math.floor(85 + Math.random() * 10),
-          status: uploaded.status || 'Scanned & Verified'
-        });
-      } else {
-        setResumeData({
-          fileName: selectedFile.name,
-          uploadedAt: new Date().toISOString().split('T')[0],
-          fileSize: `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`,
-          atsScore: Math.floor(85 + Math.random() * 10),
-          status: 'Scanned & Verified'
-        });
-      }
+      if (!uploaded) throw new Error('The server did not return the uploaded resume.');
+      setResumeData(uploaded);
       setSelectedFile(null);
-      showToast('Resume uploaded and scanned by ATS scanner successfully!', 'success');
+      showToast('Resume uploaded successfully. ATS scoring is not configured.', 'success');
     } catch (err) {
       console.error('Resume upload error:', err);
       const msg = err.response?.data?.message || err.message || 'Upload failed';
@@ -70,11 +59,11 @@ const ResumeManagement = () => {
   const handleDeleteResume = async () => {
     try {
       await portalService.deleteResume();
-    } catch (e) {
-      console.warn('Backend delete resume ignored:', e);
+      setResumeData(null);
+      showToast('Resume removed.', 'info');
+    } catch (error) {
+      showToast(error.response?.data?.message || error.message || 'Resume deletion failed.', 'error');
     }
-    setResumeData(null);
-    showToast('Resume removed.', 'info');
   };
 
   const handleDownloadResume = async (e) => {
@@ -90,7 +79,7 @@ const ResumeManagement = () => {
       link.remove();
       showToast(`Downloaded ${resumeData?.fileName}`, 'success');
     } catch (err) {
-      showToast(`Downloaded ${resumeData?.fileName || 'resume.pdf'}`, 'info');
+      showToast(err.response?.data?.message || err.message || 'Resume download failed.', 'error');
     }
   };
 
@@ -139,7 +128,7 @@ const ResumeManagement = () => {
                   {selectedFile ? selectedFile.name : 'Click to select PDF or drag & drop'}
                 </span>
                 <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                  Supported Format: PDF (Max size: 5MB)
+                  Supported format: PDF (maximum 20 MB)
                 </span>
               </label>
             </div>
@@ -150,7 +139,7 @@ const ResumeManagement = () => {
               className="btn btn-primary"
               style={{ width: '100%', padding: '0.75rem' }}
             >
-              {isUploading ? 'Scanning & Uploading PDF...' : 'Upload & Analyze Resume'}
+              {isUploading ? 'Uploading PDF...' : 'Upload Resume'}
             </button>
           </form>
         </div>
@@ -191,18 +180,7 @@ const ResumeManagement = () => {
                 </span>
               </div>
 
-              {/* ATS Score Dial Box */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1rem', backgroundColor: 'rgba(79, 70, 229, 0.08)', borderRadius: 'var(--radius-md)' }}>
-                <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: 'var(--primary-600)', color: '#FFF', fontWeight: '800', fontSize: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {resumeData.atsScore}%
-                </div>
-                <div>
-                  <div style={{ fontWeight: '700', fontSize: '1rem' }}>ATS Parsing Score</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-body)', marginTop: '0.2rem' }}>
-                    Keywords matched for SDE & Tech Roles: <strong>DSA, OOPs, React, SQL, Java</strong>
-                  </div>
-                </div>
-              </div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Automated ATS analysis is not configured.</p>
 
               {/* Action Buttons */}
               <div style={{ display: 'flex', gap: '0.75rem' }}>

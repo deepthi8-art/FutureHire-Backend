@@ -37,8 +37,7 @@ public class ResumeService {
         resume.setFileName(file.getOriginalFilename());
         resume.setFileType("application/pdf");
         resume.setFileSize(String.format("%.2f MB", file.getSize() / (1024.0 * 1024.0)));
-        resume.setAtsScore((int) (82 + (Math.random() * 14)));
-        resume.setStatus("Scanned & Verified");
+        resume.setStatus("Uploaded");
         resume.setFileData(file.getBytes());
 
         return resumeRepository.save(resume);

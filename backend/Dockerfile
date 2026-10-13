@@ -11,8 +11,9 @@ RUN mvn package -DskipTests -B
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=builder /app/target/futurehire-backend-1.0.0.jar app.jar
+ENV SPRING_PROFILES_ACTIVE=prod
 
-# Railway injects PORT env var
+# Render/Railway inject PORT; production profile requires MySQL/JWT/CORS environment settings.
 EXPOSE 8081
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

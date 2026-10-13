@@ -49,9 +49,7 @@ public class CodingService {
         submission.setProblem(problem);
         submission.setSourceCode(sourceCode);
         submission.setLanguage(language != null ? language : "javascript");
-        submission.setStatus(SubmissionStatus.ACCEPTED);
-        submission.setRuntime("38 ms");
-        submission.setMemory("13.8 MB");
+        submission.setStatus(SubmissionStatus.SUBMITTED);
 
         return codingSubmissionRepository.save(submission);
     }

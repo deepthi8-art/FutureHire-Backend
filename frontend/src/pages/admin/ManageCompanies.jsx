@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { portalService } from '../../services/portalService';
 import {
   Building,
   PlusCircle,
@@ -27,7 +28,7 @@ const ManageCompanies = () => {
     skills: 'DSA, System Design, Java'
   });
 
-  const handleAddSubmit = (e) => {
+  const handleAddSubmit = async (e) => {
     e.preventDefault();
     if (!companyForm.name) {
       showToast('Please enter company name.', 'error');
@@ -58,16 +59,26 @@ const ManageCompanies = () => {
       ]
     };
 
-    setCompanies([newCompany, ...companies]);
-    showToast(`Company ${companyForm.name} added!`, 'success');
-    setShowAddModal(false);
-    setCompanyForm({ name: '', tier: 'Product / Dream', ctc: '₹12 - 20 LPA', location: 'Bangalore / Hyderabad', description: '', minCgpa: '7.0 / 10.0', skills: 'DSA, System Design, Java' });
+    try {
+      const savedCompany = await portalService.createAdminCompany(newCompany);
+      setCompanies(prev => [savedCompany, ...prev]);
+      showToast(`Company ${companyForm.name} added.`, 'success');
+      setShowAddModal(false);
+      setCompanyForm({ name: '', tier: 'Product / Dream', ctc: '₹12 - 20 LPA', location: 'Bangalore / Hyderabad', description: '', minCgpa: '7.0 / 10.0', skills: 'DSA, System Design, Java' });
+    } catch (error) {
+      showToast(error.response?.data?.message || error.message || 'Could not add company.', 'error');
+    }
   };
 
-  const handleDeleteCompany = (id, name) => {
+  const handleDeleteCompany = async (rawId, id, name) => {
     if (window.confirm(`Delete company ${name}?`)) {
-      setCompanies(prev => prev.filter(c => c.id !== id));
-      showToast(`Company ${name} removed.`, 'info');
+      try {
+        await portalService.deleteAdminCompany(rawId);
+        setCompanies(prev => prev.filter(c => c.id !== id));
+        showToast(`Company ${name} removed.`, 'info');
+      } catch (error) {
+        showToast(error.response?.data?.message || error.message || 'Could not delete company.', 'error');
+      }
     }
   };
 
@@ -111,7 +122,7 @@ const ManageCompanies = () => {
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button onClick={() => handleDeleteCompany(comp.id, comp.name)} className="btn btn-danger btn-sm" style={{ width: '100%' }}>
+              <button onClick={() => handleDeleteCompany(comp.rawId, comp.id, comp.name)} className="btn btn-danger btn-sm" style={{ width: '100%' }}>
                 <Trash2 size={15} /> Delete Company
               </button>
             </div>

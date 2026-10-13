@@ -1,4 +1,4 @@
-# FutureHire – Placement Preparation Portal (Backend)
+# FutureHire Backend
 
 The backend service for **FutureHire**, built using **Java 21**, **Spring Boot 3.2**, **Spring Security**, **JWT Authentication**, and **MySQL / H2 Database**.
 
@@ -25,19 +25,17 @@ The backend service for **FutureHire**, built using **Java 21**, **Spring Boot 3
 
 ## 🛠️ How to Run the Spring Boot Server
 
-### 1. Build and Run using Maven
-Open terminal inside the `backend/` folder:
+### Run locally
 
 ```bash
 cd backend
-mvn spring-boot:run
+mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-The Spring Boot backend will start on **`http://localhost:8080`**.
+The Spring Boot backend starts at **`http://localhost:8081`** with an in-memory H2 database. The local profile seeds the demo student (`alex.morgan@university.edu` / `student123`) and admin (`admin@futurehire.org` / `admin123`) accounts. These credentials exist only in the local H2 profile.
 
 ### 2. Live API Documentation (Swagger UI)
-Once the server is running, open:
-👉 **`http://localhost:8080/swagger-ui.html`** or **`http://localhost:8080/swagger-ui/index.html`**
+Once the server is running, open `http://localhost:8081/swagger-ui.html`.
 
 ### 3. Database H2 Web Console (Embedded DB)
 👉 **`http://localhost:8080/h2-console`**

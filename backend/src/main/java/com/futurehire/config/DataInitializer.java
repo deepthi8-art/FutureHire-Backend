@@ -93,10 +93,7 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // 5. Seed Aptitude Quizzes & Questions
-        if (aptitudeQuizRepository.count() == 0 || aptitudeQuestionRepository.count() < 50) {
-            if (aptitudeQuizRepository.count() > 0 && aptitudeQuestionRepository.count() < 50) {
-                aptitudeQuizRepository.deleteAll();
-            }
+        if (aptitudeQuizRepository.count() == 0) {
 
             // ── Quiz 1: Quantitative Aptitude (20 questions) ──
             AptitudeQuiz q1 = new AptitudeQuiz("Quantitative Aptitude - Speed, Time & Work", "Quantitative Aptitude", 25);

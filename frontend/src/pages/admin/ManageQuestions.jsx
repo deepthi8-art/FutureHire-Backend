@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { portalService } from '../../services/portalService';
 import {
   HelpCircle,
   Code,
@@ -28,7 +29,7 @@ const ManageQuestions = () => {
     sampleOutput: ''
   });
 
-  const handleAddProblemSubmit = (e) => {
+  const handleAddProblemSubmit = async (e) => {
     e.preventDefault();
     if (!questionForm.title || !questionForm.description) {
       showToast('Please fill title and description.', 'error');
@@ -51,16 +52,26 @@ const ManageQuestions = () => {
       }
     };
 
-    setCodingProblems([newProblem, ...codingProblems]);
-    showToast(`Question "${questionForm.title}" added to Question Bank!`, 'success');
-    setShowAddModal(false);
-    setQuestionForm({ title: '', difficulty: 'Easy', category: 'Arrays & Hashing', description: '', sampleInput: '', sampleOutput: '' });
+    try {
+      const savedProblem = await portalService.createAdminCodingProblem(newProblem);
+      setCodingProblems(prev => [savedProblem, ...prev]);
+      showToast(`Question "${questionForm.title}" added to Question Bank.`, 'success');
+      setShowAddModal(false);
+      setQuestionForm({ title: '', difficulty: 'Easy', category: 'Arrays & Hashing', description: '', sampleInput: '', sampleOutput: '' });
+    } catch (error) {
+      showToast(error.response?.data?.message || error.message || 'Could not add question.', 'error');
+    }
   };
 
-  const handleDeleteProblem = (id, title) => {
+  const handleDeleteProblem = async (rawId, id, title) => {
     if (window.confirm(`Delete question "${title}"?`)) {
-      setCodingProblems(prev => prev.filter(p => p.id !== id));
-      showToast(`Question deleted.`, 'info');
+      try {
+        await portalService.deleteAdminCodingProblem(rawId);
+        setCodingProblems(prev => prev.filter(p => p.id !== id));
+        showToast('Question deleted.', 'info');
+      } catch (error) {
+        showToast(error.response?.data?.message || error.message || 'Could not delete question.', 'error');
+      }
     }
   };
 
@@ -146,7 +157,7 @@ const ManageQuestions = () => {
                   </td>
                   <td style={{ padding: '0.95rem 1.25rem', textAlign: 'right' }}>
                     <button
-                      onClick={() => handleDeleteProblem(p.id, p.title)}
+                      onClick={() => handleDeleteProblem(p.rawId, p.id, p.title)}
                       className="btn btn-danger btn-sm"
                     >
                       <Trash2 size={15} /> Delete

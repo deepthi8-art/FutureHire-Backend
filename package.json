@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start:backend": "cd backend && mvn spring-boot:run",
+    "start:backend": "cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=local",
     "start:frontend": "cd frontend && npm run dev",
     "build:frontend": "cd frontend && npm run build"
   }

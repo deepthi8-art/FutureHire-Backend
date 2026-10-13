@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 const StudyResources = () => {
-  const { resources, showToast } = useAuth();
+  const { resources } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -35,10 +35,6 @@ const StudyResources = () => {
     const matchesCat = selectedCategory === 'All' || res.category === selectedCategory;
     return matchesSearch && matchesCat;
   });
-
-  const handleDownload = (res) => {
-    showToast(`Downloading "${res.title}" (${res.size || res.fileSize || 'PDF'})...`, 'success');
-  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -94,17 +90,23 @@ const StudyResources = () => {
               </h3>
 
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
-                By <strong>{res.author}</strong> • {res.downloads.toLocaleString()} downloads
+                By <strong>{res.author}</strong> • {(res.downloads || 0).toLocaleString()} downloads
               </div>
             </div>
 
-            <button
-              onClick={() => handleDownload(res)}
-              className="btn btn-primary btn-sm"
-              style={{ width: '100%' }}
-            >
-              <Download size={16} /> Download Guide PDF
-            </button>
+            {res.downloadUrl && res.downloadUrl !== '#' ? (
+              <a
+                href={res.downloadUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-primary btn-sm"
+                style={{ width: '100%' }}
+              >
+                <Download size={16} /> Open Resource
+              </a>
+            ) : (
+              <span className="badge badge-medium">File link not provided</span>
+            )}
           </div>
         ))}
       </div>
